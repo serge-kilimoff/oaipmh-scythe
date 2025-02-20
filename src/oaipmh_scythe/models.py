@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from lxml import etree
+from lxml.etree import QName
 
 from oaipmh_scythe.utils import get_namespace, xml_to_dict
 
@@ -214,10 +215,12 @@ class Record(OAIItem):
         # We want to get record/metadata/<container>/*
         # <container> would be the element ``dc``
         # in the ``oai_dc`` case.
-        return xml_to_dict(
-            self.xml.find(".//" + self._oai_namespace + "metadata").getchildren()[0],
-            strip_ns=self._strip_ns,
-        )
+        metadata = dict()
+        for field in self.xml.xpath("./dc:metadata/*[1]/*", namespaces={"dc": self._oai_namespace.strip(r"{}")}):
+            tagname = QName(field.tag).localname
+            metadata.setdefault(tagname, list())
+            metadata[tagname].append((field.text, {QName(k).localname: v for k, v in field.attrib.items()}))
+        return metadata
 
 
 class Set(OAIItem):

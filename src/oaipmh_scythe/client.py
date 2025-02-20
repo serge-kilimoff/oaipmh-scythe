@@ -86,6 +86,7 @@ class Scythe:
         encoding: str = "utf-8",
         auth: AuthTypes | None = None,
         timeout: int | float = 60,
+        verify: bool = True,
     ):
         self.endpoint = endpoint
         if http_method not in ("GET", "POST"):
@@ -110,6 +111,7 @@ class Scythe:
         if timeout <= 0:
             raise ValueError("Invalid value for 'timeout': %s. Timeout must be positive int or float." % timeout)
         self.timeout = timeout
+        self.verify = verify
         self._client: httpx.Client | None = None
 
     @property
@@ -131,6 +133,7 @@ class Scythe:
                 auth=self.auth,
                 default_encoding=self.encoding,
                 event_hooks={"response": [log_response]},
+                verify=self.verify,
             )
         return self._client
 
